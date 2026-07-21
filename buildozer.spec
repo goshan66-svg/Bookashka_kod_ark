@@ -1,4 +1,5 @@
 [app]
+source.dir = .
 title = GuestPlayer
 package.name = guestplayer
 package.domain = org.test
