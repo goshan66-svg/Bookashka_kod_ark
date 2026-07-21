@@ -50,7 +50,9 @@ jobs:
 
       - name: Run Buildozer Android Debug
         run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          echo -e "244d2d25b6cef24c5186f7220b12c45d5599a3e4\n28a00bde5afb9ecaf14f1078674f7360a08e0638\n8592652134e63cd1242826723efb0daaf7cb7dbd\n8933bad161af4178b1185d1a37fbf41ea5269c55\n2f205308b9b85c264a9d8ad69fefbc34fcae61ec" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "84831b9409646a918e30573bab4c9c91346d8abd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
           buildozer android debug
         env:
           ACCEPT_ANDROID_SDK_LICENSES: 'y'
