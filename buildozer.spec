@@ -12,5 +12,5 @@ orientation = portrait
 
 requirements = python3, kivy==2.3.0, kivymd==1.2.0, requests, pycryptodome, ffpyplayer
 
-android.permissions = INTERNET
-android.archs = arm64-v8a
+android.sdk = 34
+android.build_tools = 34.0.0
