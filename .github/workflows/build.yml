@@ -14,7 +14,7 @@ jobs:
       - name: Build and Run via Docker
         run: |
           docker build -t buildozer-image https://github.com/kivy/buildozer.git
-          docker run --rm -v ${{ github.workspace }}:/home/user/hostinvokation buildozer-image android debug
+          docker run --rm -v ${{ github.workspace }}:/home/user/hostinvokation buildozer-image android debug --allow-root
         env:
           ACCEPT_ANDROID_SDK_LICENSES: 'y'
           BUILDOZER_WARN_ON_ROOT: '0'
