@@ -1,43 +1,31 @@
-name: Build Android APK
+name: Build Kivy APK
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ] # Укажите вашу ветку (main или master)
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch:
+  workflow_dispatch: # Позволяет запускать сборку вручную
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
+    # Автоматическая сборка APK через инструмент Buildozer
+    - name: Build with Buildozer
+      uses: ArtemSBulgakov/buildozer-action@v1
+      id: buildozer
       with:
-        distribution: 'zulu'
-        java-version: '17'
-        cache: 'gradle'
-        # Укажите путь к папке, где лежит файл build.gradle, если он не в корне:
-        # build-path: android 
+        command: buildozer android debug
+        buildozer_version: stable
 
-    - name: Grant execute permission for gradlew
-      # Если gradlew лежит в подпапке, замените на: chmod +x android/gradlew
-      run: chmod +x gradlew
-
-    - name: Build Debug APK
-      # Если проект в подпапке, добавьте префикс пути или используйте параметр working-directory
-      run: ./gradlew assembleDebug
-      # working-directory: android
-
+    # Сохранение готового APK в артефакты GitHub
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        # Скорректируйте путь, если проект в подпапке: android/app/build/...
-        path: app/build/outputs/apk/debug/app-debug.apk
-
-
+        name: kivy-app-debug
+        path: ${{ steps.buildozer.outputs.filename }}
