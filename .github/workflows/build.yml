@@ -47,7 +47,19 @@ jobs:
         pip install "cython<3.0.0"
         pip install buildozer
 
-    # ИСПРАВЛЕНО: Убрали 'yes |', оставили чистый запуск с подробными логами
+    # Жестко прописываем одобренные лицензии Google, чтобы sdkmanager вообще не задавал вопросов
+    - name: Inject Android SDK Licenses
+      run: |
+        mkdir -p ~/.android/licenses
+        mkdir -p .buildozer/android/platform/android-sdk/licenses
+        
+        # Хэши официальных лицензий Android SDK
+        LICENSE_HASHES="24333f8a63b6825ea9c5514f83c2829b004d1fee\n8933bad161af4178b1185d1a37fbf41ea5269c55\n84831b9409646a918e30573bab4c9c91346d8abd\n79a253134b6ddda86869817f9152dc0ede77ea5a\nd975f751698a77b662f1254ddbeed39cba18573d"
+        
+        echo -e "$LICENSE_HASHES" > ~/.android/licenses/android-sdk-license
+        echo -e "$LICENSE_HASHES" > .buildozer/android/platform/android-sdk/licenses/android-sdk-license
+
+    # Запуск чистой сборки. Зафиксированные build-tools 33.0.1 скачаются молча
     - name: Build Android APK
       run: |
         buildozer -v android debug
