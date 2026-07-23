@@ -47,29 +47,22 @@ jobs:
         pip install "cython<3.0.0"
         pip install buildozer
 
-    # Скачиваем SDK-менеджер отдельно и подписываем лицензии ДО основного запуска buildozer
+    # Насильно создаем папки и подписываем лицензии для Buildozer через системный менеджер
     - name: Force Accept Android Licenses
       run: |
         mkdir -p ~/.android
         touch ~/.android/repositories.cfg
         
-        # Скачиваем официальные cmdline-tools от Google вручную
-        wget https://google.com -O cmdline-tools.zip
-        unzip -q cmdline-tools.zip -d ./android-sdk
+        # Создаем структуру директорий Buildozer заранее
+        BUILDOZER_SDK_DIR="$HOME/.buildozer/android/platform/android-sdk"
+        mkdir -p "$BUILDOZER_SDK_DIR/licenses"
         
-        # Переносим структуру папок так, как этого требует sdkmanager
-        mkdir -p ./android-sdk/cmdline-tools/latest
-        mv ./android-sdk/cmdline-tools/bin ./android-sdk/cmdline-tools/latest/
-        mv ./android-sdk/cmdline-tools/lib ./android-sdk/cmdline-tools/latest/
+        # Запускаем предустановленный в Ubuntu sdkmanager, перенаправляя лицензии в папку Buildozer
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root="$BUILDOZER_SDK_DIR" --licenses || true
         
-        # Автоматически принимаем абсолютно все лицензии Google (включая Build-Tools 37)
-        yes | ./android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk --licenses || true
-        
-        # Копируем подписанные лицензии в домашнюю папку и в будущую папку buildozer
+        # Дублируем файлы лицензий в домашнюю папку пользователя
         mkdir -p ~/.android/licenses
-        mkdir -p .buildozer/android/platform/android-sdk/licenses
-        cp -r $HOME/.buildozer/android/platform/android-sdk/licenses/* ~/.android/licenses/ || true
-        cp -r $HOME/.buildozer/android/platform/android-sdk/licenses/* .buildozer/android/platform/android-sdk/licenses/ || true
+        cp -r "$BUILDOZER_SDK_DIR/licenses/"* ~/.android/licenses/ || true
 
     - name: Build Android APK
       run: |
