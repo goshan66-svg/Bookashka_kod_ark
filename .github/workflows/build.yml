@@ -2,7 +2,7 @@ name: Build Kivy APK (Native)
 
 on:
   push:
-    branches: [ "main" ] # Поменяйте на master, если необходимо
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
@@ -20,7 +20,6 @@ jobs:
       with:
         python-version: '3.11'
 
-    # Установка системных зависимостей, необходимых для сборки Android через Buildozer
     - name: Install System Dependencies
       run: |
         sudo apt-get update
@@ -40,32 +39,42 @@ jobs:
           libgdbm-dev \
           libgdbm-compat-dev
 
-    # Установка актуальных версий Cython и Buildozer из PyPI
     - name: Install Buildozer and Cython
       run: |
         pip install --upgrade pip
         pip install "cython<3.0.0"
         pip install buildozer
 
-    # Запуск сборки через установленный buildozer
-    - name: Accept Android SDK Licenses
+    # Создаем файлы лицензий Google Android SDK заранее, чтобы buildozer не спрашивал согласия в консоли
+    - name: Pre-accept Android SDK Licenses
       run: |
         mkdir -p ~/.android
         touch ~/.android/repositories.cfg
-        # Инициализируем скачивание базовых инструментов buildozer, чтобы появился sdkmanager
-        buildozer android licenses <<< "y" || true
-        # Насильно принимаем все лицензии через sdkmanager, если он уже скачался
-        if [ -d "$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin" ]; then
-          yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
-        elif [ -d "$HOME/.buildozer/android/platform/android-sdk/tools/bin" ]; then
-          yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses
-        fi
+        
+        # Создаем директории для лицензий как в домашней папке, так и локально для buildozer
+        mkdir -p ~/.android/licenses
+        mkdir -p .buildozer/android/platform/android-sdk/licenses
+        
+        # Хэши официальных лицензий Google (включая Android SDK, Preview и SDK NDK)
+        ANDROID_SDK_LICENSE="24333f8a63b6825ea9c5514f83c2829b004d1fee"
+        ANDROID_SDK_PREVIEW_LICENSE="84831b9409646a918e30573bab4c9c91346d8abd"
+        ANDROID_PREVIEW_LICENSE="79a253134b6ddda86869817f9152dc0ede77ea5a"
+        ANDROID_SDK_ARM_DNET_LICENSE="d975f751698a77b662f1254ddbeed39cba18573d"
+        
+        # Записываем хэши в домашнюю папку раннера
+        echo -e "$ANDROID_SDK_LICENSE\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n8933bad161af4178b1185d1a37fbf41ea5269c55" > ~/.android/licenses/android-sdk-license
+        echo -e "$ANDROID_SDK_PREVIEW_LICENSE" > ~/.android/licenses/android-sdk-preview-license
+        echo -e "$ANDROID_PREVIEW_LICENSE" > ~/.android/licenses/android-preview-license
+        echo -e "$ANDROID_SDK_ARM_DNET_LICENSE" > ~/.android/licenses/android-sdk-arm-dnet-license
+        
+        # Продублируем их туда, где buildozer будет разворачивать SDK локально
+        echo -e "$ANDROID_SDK_LICENSE\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n8933bad161af4178b1185d1a37fbf41ea5269c55" > .buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        echo -e "$ANDROID_SDK_PREVIEW_LICENSE" > .buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
 
     - name: Build Android APK
       run: |
         buildozer android debug
 
-    # Поиск сгенерированного файла внутри скрытой папки .buildozer и его загрузка
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
