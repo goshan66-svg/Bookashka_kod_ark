@@ -45,18 +45,10 @@ jobs:
         pip install "cython<3.0.0"
         pip install buildozer
 
-    # Автоматически принимаем лицензии в системном Android SDK GitHub на всякий случай
-    - name: Accept Global Android Licenses
-      run: |
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
-    # Запускаем сборку, принудительно заставляя buildozer смотреть на готовый системный SDK
+    # Конвейер 'yes |' автоматически ответит 'y' на все вопросы о лицензиях внутри buildozer
     - name: Build Android APK
       run: |
-        buildozer android debug
-      env:
-        ANDROID_HOME: ${{ env.ANDROID_HOME }}
-        ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+        yes | buildozer android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
