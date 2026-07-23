@@ -47,24 +47,20 @@ jobs:
         pip install "cython<3.0.0"
         pip install buildozer
 
-    # Создаем фейковый sdkmanager по старому пути, который принудительно подпишет все лицензии
-    - name: Create Smart Sdkmanager Wrapper
+    # Шаг 1: Автоматически принимаем лицензии в системном Android SDK от GitHub
+    - name: Accept System Android Licenses
       run: |
-        # Заранее создаем структуру папок, которую ожидает увидеть buildozer
-        LEGACY_BIN_DIR="$HOME/.buildozer/android/platform/android-sdk/tools/bin"
-        mkdir -p "$LEGACY_BIN_DIR"
-        
-        # Пишем скрипт-перехватчик
-        cat << 'EOF' > "$LEGACY_BIN_DIR/sdkmanager"
-        #!/bin/bash
-        # Перенаправляем все вызовы на настоящий, современный системный sdkmanager от GitHub
-        # При этом автоматически подставляем "yes", чтобы принять любые лицензии (включая 37-ю версию)
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk "$@"
-        EOF
-        
-        # Даем права на исполнение нашего скрипта-заглушки
-        chmod +x "$LEGACY_BIN_DIR/sdkmanager"
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
+    # Шаг 2: Создаем структуру папок для Buildozer и копируем туда УЖЕ ПРИНЯТЫЕ лицензии
+    - name: Link Accepted Licenses to Buildozer
+      run: |
+        mkdir -p .buildozer/android/platform/android-sdk/licenses
+        if [ -d "$ANDROID_HOME/licenses" ]; then
+          cp -r $ANDROID_HOME/licenses/* .buildozer/android/platform/android-sdk/licenses/
+        fi
+
+    # Шаг 3: Чистый запуск без обманных скриптов. Сборщик увидит готовые лицензии и оригинальный sdkmanager
     - name: Build Android APK
       run: |
         buildozer -v android debug
