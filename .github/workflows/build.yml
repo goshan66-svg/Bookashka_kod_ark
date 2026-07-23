@@ -48,6 +48,19 @@ jobs:
         pip install buildozer
 
     # Запуск сборки через установленный buildozer
+    - name: Accept Android SDK Licenses
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        # Инициализируем скачивание базовых инструментов buildozer, чтобы появился sdkmanager
+        buildozer android licenses <<< "y" || true
+        # Насильно принимаем все лицензии через sdkmanager, если он уже скачался
+        if [ -d "$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin" ]; then
+          yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+        elif [ -d "$HOME/.buildozer/android/platform/android-sdk/tools/bin" ]; then
+          yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses
+        fi
+
     - name: Build Android APK
       run: |
         buildozer android debug
