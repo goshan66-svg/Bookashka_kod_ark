@@ -1,4 +1,4 @@
-name: Build Kivy APK (Native)
+name: Build Kivy APK with FFpyplayer
 
 on:
   push:
@@ -37,7 +37,9 @@ jobs:
           libsqlite3-dev \
           sqlite3 \
           libgdbm-dev \
-          libgdbm-compat-dev
+          libgdbm-compat-dev \
+          libffi-dev \
+          libssl-dev
 
     - name: Install Buildozer and Cython
       run: |
@@ -45,10 +47,10 @@ jobs:
         pip install "cython<3.0.0"
         pip install buildozer
 
-    # Конвейер 'yes |' автоматически ответит 'y' на все вопросы о лицензиях внутри buildozer
+    # ИСПРАВЛЕНО: Убрали 'yes |', оставили чистый запуск с подробными логами
     - name: Build Android APK
       run: |
-        yes | buildozer android debug
+        buildozer -v android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
