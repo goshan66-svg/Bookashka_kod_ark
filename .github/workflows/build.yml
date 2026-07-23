@@ -1,11 +1,11 @@
-name: Build Kivy APK
+name: Build Kivy APK (Native)
 
 on:
   push:
-    branches: [ "main" ] # Укажите вашу ветку (main или master)
+    branches: [ "main" ] # Поменяйте на master, если необходимо
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch: # Позволяет запускать сборку вручную
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,17 +15,69 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Автоматическая сборка APK через инструмент Buildozer
-    - name: Build with Buildozer
-      uses: ArtemSBulgakov/buildozer-action@v1
-      id: buildozer
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        command: buildozer android debug
-        buildozer_version: stable
+        python-version: '3.11'
 
-    # Сохранение готового APK в артефакты GitHub
+    # Установка системных зависимостей, необходимых для сборки Android через Buildozer
+    - name: Install System Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          git \
+          ffmpeg \
+          libsdl2-dev \
+          libsdl2-image-dev \
+          libsdl2-mixer-dev \
+          libsdl2-ttf-dev \
+          libportmidi-dev \
+          libswscale-dev \
+          libavformat-dev \
+          libavcodec-dev \
+          zlib1g-dev \
+          libgstreamer1.0-dev \
+          gstreamer1.0-plugins-base \
+          gstreamer1.0-plugins-good \
+          libsqlite3-dev \
+          sqlite3 \
+          bzip2 \
+          libbz2-dev \
+          libssl-dev \
+          openssl \
+          libgdbm-dev \
+          libgdbm-compat-dev \
+          liblzma-dev \
+          libreadline-dev \
+          libncursesw5-dev \
+          libffi-dev \
+          uuid-dev \
+          libgstreamer-plugins-base1.0-dev \
+          openjdk-17-jdk \
+          unzip \
+          zip \
+          autoconf \
+          automake \
+          libtool \
+          pkg-config \
+          ccache
+
+    # Установка актуальных версий Cython и Buildozer из PyPI
+    - name: Install Buildozer and Cython
+      run: |
+        pip install --upgrade pip
+        pip install "cython<3.0.0"
+        pip install buildozer
+
+    # Запуск сборки через установленный buildozer
+    - name: Build Android APK
+      run: |
+        buildozer android debug
+
+    # Поиск сгенерированного файла внутри скрытой папки .buildozer и его загрузка
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: kivy-app-debug
-        path: ${{ steps.buildozer.outputs.filename }}
+        path: bin/*.apk
