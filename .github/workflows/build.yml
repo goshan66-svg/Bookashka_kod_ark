@@ -2,10 +2,10 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "main" ] # Поменяйте на master, если нужно
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch: # Позволяет запускать сборку вручную
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,16 +21,23 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
         cache: 'gradle'
+        # Укажите путь к папке, где лежит файл build.gradle, если он не в корне:
+        # build-path: android 
 
     - name: Grant execute permission for gradlew
+      # Если gradlew лежит в подпапке, замените на: chmod +x android/gradlew
       run: chmod +x gradlew
 
     - name: Build Debug APK
+      # Если проект в подпапке, добавьте префикс пути или используйте параметр working-directory
       run: ./gradlew assembleDebug
+      # working-directory: android
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
+        # Скорректируйте путь, если проект в подпапке: android/app/build/...
         path: app/build/outputs/apk/debug/app-debug.apk
+
 
