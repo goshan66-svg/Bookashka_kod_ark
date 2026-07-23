@@ -16,3 +16,4 @@ android.api = 33
 android.minapi = 21
 android.ndk = 25b
 android.toolchain = clang
+android.build_tools = 33.0.1
