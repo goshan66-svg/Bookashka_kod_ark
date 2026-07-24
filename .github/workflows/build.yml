@@ -47,19 +47,10 @@ jobs:
         pip install "cython<3.0.0"
         pip install buildozer
 
-    # Шаг 1: Автоматически принимаем лицензии в системном Android SDK от GitHub
+    # НАША СТРОКА: Перехватываем лицензии Google до запуска сборщика
     - name: Accept Android SDK Licenses
       run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
-    # Шаг 2: Создаем структуру папок для Buildozer и копируем туда УЖЕ ПРИНЯТЫЕ лицензии
-    - name: Link Accepted Licenses to Buildozer
-      run: |
-        mkdir -p .buildozer/android/platform/android-sdk/licenses
-        if [ -d "$ANDROID_HOME/licenses" ]; then
-          cp -r $ANDROID_HOME/licenses/* .buildozer/android/platform/android-sdk/licenses/
-        fi
-
-    # Шаг 3: Чистый запуск без обманных скриптов. Сборщик увидит готовые лицензии и оригинальный sdkmanager
     - name: Build Android APK
       run: |
         buildozer -v android debug
