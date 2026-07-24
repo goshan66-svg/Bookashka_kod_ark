@@ -48,9 +48,8 @@ jobs:
         pip install buildozer
 
     # Шаг 1: Автоматически принимаем лицензии в системном Android SDK от GitHub
-    - name: Accept System Android Licenses
-      run: |
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+    - name: Accept Android SDK Licenses
+      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
     # Шаг 2: Создаем структуру папок для Buildozer и копируем туда УЖЕ ПРИНЯТЫЕ лицензии
     - name: Link Accepted Licenses to Buildozer
